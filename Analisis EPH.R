@@ -178,9 +178,9 @@ eph_2 <- eph_2 %>%
 brecha <- lm(log_ingreso ~ aeduc + sexo + experiencia + I(experiencia^2) + region +
              cat_ocup + as.factor(estado_civil) + horas_trabajadas, data = eph_2, weights = pondiio)
 
-#El coeficiente sexo indicara la diferencia porcentual que existe entre
-#El ingreso de las mujeres contra los hombres para una persona
-#Con la misma cantidad de educaion, experiencia, region, y categoria ocupacional
+#El coeficiente sexo indica cuanto % mas (o menos) ganan los hombres en comparacion con las mujeres
+#Para una persona con la misma cantidad de educacion, experiencia, region, categoria ocupacional y horas trabajadas
+
 
 summary(brecha)
 
@@ -189,23 +189,109 @@ eph_2 <- eph_2 %>%
   mutate(salario_hora = ingreso/(horas_trabajadas*4.3)) %>% 
   mutate(log_salario_hora = log(salario_hora))
 
-
-brecha2 <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) + region +
-               cat_ocup + as.factor(estado_civil), data = eph_2, weights = pondiio)
-summary(brecha2)
-
-#Si se quisiera ver la brecha pero solo en CABA
-
-eph_3 <- eph_2 %>% 
+#Si quisiera verlo en CABA
+eph_caba <- eph_2 %>% 
   filter(aglomerado == 32)
 
 #Ya no es necesario incluir la variable region
-brecha_caba <- lm(log_ingreso ~ aeduc + sexo + experiencia + I(experiencia^2)  +
-                    cat_ocup + as.factor(estado_civil) + horas_trabajadas, data = eph_3, weights = pondiio)
+brecha.caba <- lm(log_ingreso ~ aeduc + sexo + experiencia + I(experiencia^2)  +
+                    cat_ocup + as.factor(estado_civil) + horas_trabajadas, data = eph_caba, weights = pondiio)
 
 summary(brecha_caba)
 
 
-brecha2caba <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) +
-                cat_ocup + as.factor(estado_civil), data = eph_3, weights = pondiio)
-summary(brecha2caba)
+#Brecha utilizando el salario por hora
+brecha_nac <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) + region +
+                   cat_ocup + as.factor(estado_civil), data = eph_2, weights = pondiio)
+summary(brecha_nac)
+
+brecha_caba <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) +
+                cat_ocup + as.factor(estado_civil), data = eph_caba, weights = pondiio)
+summary(brecha_caba)
+
+eph_gba <- eph_2 %>% 
+  filter(region == "Gran Buenos Aires")
+
+brecha_gba <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) +
+                   cat_ocup + as.factor(estado_civil), data = eph_gba, weights = pondiio)
+summary(brecha_gba)
+
+
+eph_no <- eph_2 %>% 
+  filter(region == "Noroeste")
+
+brecha_no <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) +
+                   cat_ocup + as.factor(estado_civil), data = eph_no, weights = pondiio)
+summary(brecha_no)
+
+
+
+eph_ne <- eph_2 %>% 
+  filter(region == "Noreste")
+
+brecha_ne <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) +
+                   cat_ocup + as.factor(estado_civil), data = eph_ne, weights = pondiio)
+summary(brecha_ne)
+
+
+eph_cuyo <- eph_2 %>% 
+  filter(region == "Cuyo")
+
+brecha_cuyo <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) +
+                   cat_ocup + as.factor(estado_civil), data = eph_cuyo, weights = pondiio)
+summary(brecha_cuyo)
+
+
+eph_pat <- eph_2 %>% 
+  filter(region == "Patagonia")
+
+brecha_pat <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) +
+                   cat_ocup + as.factor(estado_civil), data = eph_pat, weights = pondiio)
+summary(brecha_pat)
+
+
+
+#Se ve como la brecha a nivel nacional es muy alta alcanzando el 38% cuando se utiliza el salario mensual
+#En cambio en CABA la diferencia es mucho menor y llega al 18%
+#En cambio cuando se utiliza el salario por hora a nivel nacional la brecha cae al 20%
+#Y en CABA directamente el coeficiente no es significtativo (95%)
+#Por lo que no se puede asegurar estadisticamente que haya brecha salarial en CABA
+
+#Esto sucede porque una de las principales razones que explican la diferencia de los salarios
+#Es que el hombre trabaja mas horas en el mes que las mujeres
+#Lo que hace que su salario/ingreso mensual sea mayor
+#Al compararse dos personas midiendo el salario por horas la brecha disminuye mucho
+#Ya que ahora se elimina el control de cuantas horas trabajaron
+#Sin embargo para medir la brecha de genero, es decir 
+#Cual es la diferencia entre el hombre y la mujer para la misma tarea, la misma cantidad de horas
+#Se utiliza el segundo modelo y no el primero que compara con el ingreso mensual
+
+
+coef_nac <- brecha_nac$coefficients["sexoHombre"]
+coef_caba <- brecha_caba$coefficients["sexoHombre"]
+coef_gba <- brecha_gba$coefficients["sexoHombre"]
+coef_no <- brecha_no$coefficients["sexoHombre"]
+coef_ne <- brecha_ne$coefficients["sexoHombre"]
+coef_cuyo <- brecha_cuyo$coefficients["sexoHombre"]
+coef_pat <- brecha_pat$coefficients["sexoHombre"]
+
+
+tabla_brecha <- data.frame(
+  Region = c("Nivel Nacional", "CABA", "Gran Buenos Aires", "Noroeste", "Noreste", "Cuyo", "Patagonia"),
+  Brecha_Salarial = c(coef_nac, coef_caba, coef_gba, coef_no, coef_ne, coef_cuyo, coef_pat))
+
+print(tabla_brecha)
+
+brechas <- list("Nacional" = brecha_nac,
+                "CABA" = brecha_caba,
+                "Gran Buenos Aires" = brecha_gba,
+                "Noroeste" = brecha_no,
+                "Noreste" = brecha_ne,
+                "Cuyo" = brecha_cuyo,
+                "Patagonia" = brecha_pat)
+modelsummary(brechas,
+             title = "Brecha salarial en el pais",
+             stars = TRUE,
+             coef_map = c("sexoHombre" = "Brecha de genero"),
+             gof_map = c("nobs", "adj.r.squared"))
+
