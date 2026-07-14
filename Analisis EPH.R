@@ -49,11 +49,11 @@ eph$sexo <- factor(eph$sexo, levels = c(0, 1),
                    labels = c("Mujer", "Hombre"))
 
 eph$estado_civil <- factor(eph$estado_civil, levels = c(1, 2, 3, 4, 5),
-                   labels = c("unido", "casado", "separado", "viudo", "soltero"))
+                           labels = c("unido", "casado", "separado", "viudo", "soltero"))
 
 eph$cat_ocup <- factor(eph$cat_ocup, levels = c(1, 2, 3, 4, 9),
-                      labels = c("patron", "cuenta propia", "obrero o empleado",
-                                "trab_familiar", "ns_nr."))
+                       labels = c("patron", "cuenta propia", "obrero o empleado",
+                                  "trab_familiar", "ns_nr."))
 
 #Brecha salarial
 eph <- eph %>% 
@@ -63,7 +63,7 @@ eph <- eph %>%
 #Salario promedio mensual
 tabla1 <- eph %>% 
   summarise(
-  "Tabla 1: Salario Promedio Mensual" = weighted.mean(as.numeric(ingreso2), as.numeric(pondiio, na.rm = TRUE)))
+    "Tabla 1: Salario Promedio Mensual" = weighted.mean(as.numeric(ingreso2), as.numeric(pondiio, na.rm = TRUE)))
 
 print(tabla1)
 
@@ -176,7 +176,7 @@ eph_2 <- eph_2 %>%
 #Regresion para obtener la brecha salarial
 
 brecha <- lm(log_ingreso ~ aeduc + sexo + experiencia + I(experiencia^2) + region +
-             cat_ocup + as.factor(estado_civil) + horas_trabajadas, data = eph_2, weights = pondiio)
+               cat_ocup + as.factor(estado_civil) + horas_trabajadas, data = eph_2, weights = pondiio)
 
 #El coeficiente sexo indica cuanto % mas (o menos) ganan los hombres en comparacion con las mujeres
 #Para una persona con la misma cantidad de educacion, experiencia, region, categoria ocupacional y horas trabajadas
@@ -206,7 +206,7 @@ brecha_nac <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2
 summary(brecha_nac)
 
 brecha_caba <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) +
-                cat_ocup + as.factor(estado_civil), data = eph_caba, weights = pondiio)
+                    cat_ocup + as.factor(estado_civil), data = eph_caba, weights = pondiio)
 summary(brecha_caba)
 
 eph_gba <- eph_2 %>% 
@@ -221,7 +221,7 @@ eph_no <- eph_2 %>%
   filter(region == "Noroeste")
 
 brecha_no <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) +
-                   cat_ocup + as.factor(estado_civil), data = eph_no, weights = pondiio)
+                  cat_ocup + as.factor(estado_civil), data = eph_no, weights = pondiio)
 summary(brecha_no)
 
 
@@ -230,7 +230,7 @@ eph_ne <- eph_2 %>%
   filter(region == "Noreste")
 
 brecha_ne <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) +
-                   cat_ocup + as.factor(estado_civil), data = eph_ne, weights = pondiio)
+                  cat_ocup + as.factor(estado_civil), data = eph_ne, weights = pondiio)
 summary(brecha_ne)
 
 
@@ -238,7 +238,7 @@ eph_cuyo <- eph_2 %>%
   filter(region == "Cuyo")
 
 brecha_cuyo <- lm(log_salario_hora ~ aeduc + sexo + experiencia + I(experiencia^2) +
-                   cat_ocup + as.factor(estado_civil), data = eph_cuyo, weights = pondiio)
+                    cat_ocup + as.factor(estado_civil), data = eph_cuyo, weights = pondiio)
 summary(brecha_cuyo)
 
 
@@ -294,4 +294,41 @@ modelsummary(brechas,
              stars = TRUE,
              coef_map = c("sexoHombre" = "Brecha de genero"),
              gof_map = c("nobs", "adj.r.squared"))
+
+
+#Dummy informalidad
+eph_2 <- eph_2 %>% 
+  mutate(informalidad = if_else(pp07h == 1, 1, 0),
+         informalidad = factor(informalidad, levels = c(0, 1),
+                               labels = c("No Registrado", "Registrado")))
+#Tasa informalidad
+tabla_informalidad <- eph_2 %>%
+  
+  filter(cat_ocup == "obrero o empleado") %>%
+  
+  mutate(condicion_registro = case_when(
+    pp07h == 1 ~ "Formal (En blanco)",
+    pp07h == 2 ~ "Informal (En negro)",
+    TRUE ~ NA_character_
+  )) %>%
+  
+  filter(!is.na(condicion_registro)) %>%
+  
+  group_by(condicion_registro) %>%
+  
+  summarise(
+    Casos_Muestra = n(),
+    Salario_Mensual_Promedio = weighted.mean(ingreso, pondiio, na.rm = TRUE),
+    Salario_Hora_Promedio = weighted.mean(salario_hora, pondiio, na.rm = TRUE)
+  ) %>%
+  
+    mutate(Porcentaje = (Casos_Muestra / sum(Casos_Muestra)) * 100)
+
+print(tabla_informalidad)
+
+
+
+
+
+
 
