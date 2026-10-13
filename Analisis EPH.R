@@ -1,17 +1,19 @@
-library(tidyverse)    # Para el manejo de variables
-library(ggplot2)      # Está incluído en tidyverse (para hacer gráficos)
-library(dplyr)        # Está incluído en tidyverse (para el manejo de variables)
-library(haven)        # Para importar archivos de tipo .dta o .sav  
-library(readxl)       # Para importar archivos de excel
-library(writexl)      # Para exportar archivos de excel
-library(skimr)        # Genera resúmenes estadísticos más completos que
-library(janitor)      # Limpieza de nombre de ariables
-library(broom)        # Convierte resultados de modelos en data frames ordenados.
-library(sandwich)     # Genera errores estandar
-library(lmtest)       # Sirve para tests estadísticos para modelos lineales (heter., autocorr., etc.).
-library(modelsummary) # Formatos más visibles de regresiones
+# PAQUETES
+# install.packages(c("tidyverse","ggplot2", "dplyr", "modelsummary", "haven", "readxl", "writexl", "skimr", "janitor", "broom", "sandwich", "lmtest", "AER", "eph"))
+
+library(tidyverse)    
+library(ggplot2)      
+library(dplyr)       
+library(haven)     
+library(readxl)    
+library(writexl)   
+library(skimr)      
+library(janitor) 
+library(broom)     
+library(sandwich)  
+library(lmtest)      
+library(modelsummary)
 library(AER)
-library(lmtest)
 library(eph)
 
 rm(list = ls())
